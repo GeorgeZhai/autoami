@@ -80,16 +80,24 @@ def lambda_handler(event, context):
                 try:
                     backup_cycle = int(tag['Value'])
                 except ValueError as verr:
-                    pass # do job to handle: s does not contain anything convertible to int
+                    print verr
+                    print 'AMIBACKUPCYCLE does not contain anything convertible to int'
+                    pass
                 except Exception as ex:
-                    pass # do job to handle: Exception occurred while converting to int
+                    print ex
+                    print 'error in connverting AMIBACKUPCYCLE to int'
+                    pass
             if (tag['Key'].strip().upper()=='AMIRETENTIONDAYS'):
                 try:
                     retention_days = int(tag['Value'])
                 except ValueError as verr:
-                    pass # do job to handle: s does not contain anything convertible to int
+                    print verr
+                    print 'AMIRETENTIONDAYS does not contain anything convertible to int'
+                    pass
                 except Exception as ex:
-                    pass # do job to handle: Exception occurred while converting to int
+                    print ex
+                    print 'error in connverting AMIRETENTIONDAYS to int'
+                    pass
             if (tag['Key'].strip().upper()=='AMILASTBACKUP'):
                 try:
                     last_backup = tag['Value']
@@ -98,22 +106,24 @@ def lambda_handler(event, context):
                 except Exception as ex:
                     last_backup_date = datetime.datetime.today() - datetime.timedelta(days=(backup_cycle+1))
                     print ex
-                    print 'erro rin connvert'
+                    print 'error in connverting AMILASTBACKUP date'
                     pass
 
             backup_due_date = last_backup_date + datetime.timedelta(days=backup_cycle)
             ami_del_date = current_time + datetime.timedelta(days=retention_days)
             ami_del_date_fmt = ami_del_date.strftime('%Y-%m-%d %H:%M:%S')
 
-        print "instance_id: %s instance_name %s === value backup_cycle: %s retention_days: %s last_backup: %s" % (instance_id, instance_name, backup_cycle, retention_days, last_backup)
-        print "backup_due_date: %s current_time_fmt: %s ami_del_date_fmt: %s" % (backup_due_date, current_time_fmt, ami_del_date_fmt)
+#        print "instance_id: %s instance_name %s === value backup_cycle: %s retention_days: %s last_backup: %s" % (instance_id, instance_name, backup_cycle, retention_days, last_backup)
+#        print "backup_due_date: %s current_time_fmt: %s ami_del_date_fmt: %s" % (backup_due_date, current_time_fmt, ami_del_date_fmt)
 
         if(backup_cycle > 0 and current_time > backup_due_date and backupcount < max_instances_prerun):
             backup_flag = True
 
-        print (backup_flag)
+#        print (backup_flag)
 
         if (backup_flag):
+            print "instance to backup --- id: %s instance_name %s === value backup_cycle: %s retention_days: %s last_backup: %s" % (instance_id, instance_name, backup_cycle, retention_days, last_backup)
+            print "vars : backup_due_date: %s current_time_fmt: %s ami_del_date_fmt: %s" % (backup_due_date, current_time_fmt, ami_del_date_fmt)
             backupcount = backupcount +1
             try:
                 AMIid = ec.create_image(InstanceId=instance['InstanceId'], Name= instance_name + "-" + instance_id + "on" + current_time_aminame, Description="auto backup: " + instance_name + " - " + instance_id, NoReboot=True, DryRun=False)
@@ -151,6 +161,7 @@ def lambda_handler(event, context):
                 print ex
                 pass
 
+    print ("Backup %d instances completed!" % (backupcount))
 
 
 
