@@ -2,7 +2,6 @@
 
 
 AWS IAM policy for Lambda
-
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -21,6 +20,8 @@ AWS IAM policy for Lambda
         {
             "Effect": "Allow",
             "Action": [
+                "ec2:CreateImage",
+                "ec2:DeregisterImage",
                 "ec2:CreateSnapshot",
                 "ec2:ModifySnapshotAttribute",
                 "ec2:ResetSnapshotAttribute",
