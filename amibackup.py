@@ -104,9 +104,9 @@ def lambda_handler(event, context):
                     last_backup_date = datetime.datetime.strptime(last_backup, '%Y-%m-%d %H:%M:%S')
                     print "proper converted"
                 except Exception as ex:
-                    last_backup_date = datetime.datetime.today() - datetime.timedelta(days=(backup_cycle+1))
+                    last_backup_date = datetime.datetime.today() - datetime.timedelta(days=(backup_cycle+3))
                     print ex
-                    print 'error in connverting AMILASTBACKUP date'
+                    print 'error in connverting AMILASTBACKUP date - making backup overdue'
                     pass
 
             backup_due_date = last_backup_date + datetime.timedelta(days=backup_cycle)
