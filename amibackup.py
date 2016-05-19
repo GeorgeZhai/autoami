@@ -22,6 +22,7 @@
 
 import boto3
 import datetime
+import time
 
 #ec = boto3.client('ec2')
 ec = boto3.client('ec2', 'us-east-1')
@@ -75,7 +76,7 @@ def lambda_handler(event, context):
 
         for tag in instance['Tags']:
             if (tag['Key'].strip().upper()=='NAME'):
-                    instance_name = tag['Value']
+                instance_name = tag['Value']
             if (tag['Key'].strip().upper()=='AMIBACKUPCYCLE'):
                 try:
                     backup_cycle = int(tag['Value'])
@@ -98,31 +99,30 @@ def lambda_handler(event, context):
                     print ex
                     print 'error in connverting AMIRETENTIONDAYS to int'
                     pass
+
+        for tag in instance['Tags']:
             if (tag['Key'].strip().upper()=='AMILASTBACKUP'):
                 try:
                     last_backup = tag['Value']
                     last_backup_date = datetime.datetime.strptime(last_backup, '%Y-%m-%d %H:%M:%S')
-                    print "proper converted"
                 except Exception as ex:
-                    last_backup_date = datetime.datetime.today() - datetime.timedelta(days=(backup_cycle+3))
+                    last_backup_date = current_time - datetime.timedelta(days=(backup_cycle+2))
                     print ex
                     print 'error in connverting AMILASTBACKUP date - making backup overdue'
                     pass
 
-            backup_due_date = last_backup_date + datetime.timedelta(days=backup_cycle)
-            ami_del_date = current_time + datetime.timedelta(days=retention_days)
-            ami_del_date_fmt = ami_del_date.strftime('%Y-%m-%d %H:%M:%S')
+        backup_due_date = last_backup_date + datetime.timedelta(days=backup_cycle)
+        ami_del_date = current_time + datetime.timedelta(days=retention_days)
+        ami_del_date_fmt = ami_del_date.strftime('%Y-%m-%d %H:%M:%S')
 
-#        print "instance_id: %s instance_name %s === value backup_cycle: %s retention_days: %s last_backup: %s" % (instance_id, instance_name, backup_cycle, retention_days, last_backup)
-#        print "backup_due_date: %s current_time_fmt: %s ami_del_date_fmt: %s" % (backup_due_date, current_time_fmt, ami_del_date_fmt)
 
+#        print "vars : backup_due_date: %s current_time_fmt: %s ami_del_date_fmt: %s" % (backup_due_date, current_time_fmt, ami_del_date_fmt)
         if(backup_cycle > 0 and current_time > backup_due_date and backupcount < max_instances_prerun):
             backup_flag = True
-
 #        print (backup_flag)
 
         if (backup_flag):
-            print "instance to backup --- id: %s instance_name %s === value backup_cycle: %s retention_days: %s last_backup: %s" % (instance_id, instance_name, backup_cycle, retention_days, last_backup)
+            print "instance to backup --- id: %s instance_name %s === value backup_cycle: %s retention_days: %s last_backup_date: %s" % (instance_id, instance_name, backup_cycle, retention_days, last_backup_date)
             print "vars : backup_due_date: %s current_time_fmt: %s ami_del_date_fmt: %s" % (backup_due_date, current_time_fmt, ami_del_date_fmt)
             backupcount = backupcount +1
             try:
